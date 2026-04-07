@@ -48,8 +48,9 @@ Create a `.env` file or configure the same variables in Vercel:
 
 - `TELEGRAM_BOT_TOKEN`: Telegram bot token from BotFather
 - `ADMIN_CHAT_ID`: caregiver/admin Telegram chat ID
-- `APP_BASE_URL`: deployed base URL such as `https://your-app.vercel.app`
 - `DATABASE_URL`: Neon pooled connection string
+
+On Vercel, the webhook URL is derived from the system environment variable `VERCEL_URL`. You do not need to set `APP_BASE_URL`.
 
 An example file is provided in [.env.example](/Users/rocketman/Documents/seo-a/.env.example).
 
@@ -118,14 +119,14 @@ The webhook function lives at:
 https://<your-domain>/api/telegram
 ```
 
-The GET handler on the same path returns a small health payload including the computed webhook URL.
+The GET handler on the same path returns a small health payload including the computed webhook URL when `VERCEL_URL` is available.
 
 ## Telegram Webhook Registration
 
 ```bash
 curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
   -H "Content-Type: application/json" \
-  -d "{\"url\": \"${APP_BASE_URL}/api/telegram\"}"
+  -d "{\"url\": \"https://${VERCEL_URL}/api/telegram\"}"
 ```
 
 To inspect the current webhook:
