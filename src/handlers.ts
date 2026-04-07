@@ -86,6 +86,40 @@ function toErrorMessage(error: unknown): string {
   return String(error);
 }
 
+function getErrorStack(error: unknown): string | undefined {
+  if (error instanceof Error) {
+    return error.stack;
+  }
+  return undefined;
+}
+
+function getUpdateDebugContext(update: TelegramUpdate): Record<string, unknown> {
+  return {
+    updateId: update.update_id,
+    kind: getUpdateKind(update),
+    chatId: getUpdateChatId(update) ?? null,
+    messageText: update.message?.text ?? null,
+    callbackData: update.callback_query?.data ?? null,
+  };
+}
+
+async function notifyUnhandledUpdateError(update: TelegramUpdate, errorMessage: string): Promise<void> {
+  const chatId = getUpdateChatId(update);
+  if (!chatId) {
+    return;
+  }
+
+  try {
+    await sendMessage(chatId, `오류: ${errorMessage}`);
+  } catch (notifyError) {
+    console.error("사용자 오류 메시지 전송 실패", {
+      chatId,
+      error: toErrorMessage(notifyError),
+      stack: getErrorStack(notifyError),
+    });
+  }
+}
+
 function parsePythonStyleInt(text: string): number {
   if (!/^[+-]?\d+$/.test(text)) {
     throw new Error(`invalid literal for int() with base 10: '${text}'`);
@@ -778,7 +812,12 @@ export async function handleTelegramWebhook(request: Request): Promise<Response>
     return Response.json({ ok: true });
   } catch (error) {
     const message = toErrorMessage(error);
-    console.error("Telegram webhook 처리 실패", { updateId, error: message });
+    console.error("Telegram webhook 처리 실패", {
+      ...getUpdateDebugContext(update),
+      error: message,
+      stack: getErrorStack(error),
+    });
+    await notifyUnhandledUpdateError(update, message);
     await markProcessedUpdateFailed(updateId, message);
     return Response.json({ ok: false, error: "internal-error" }, { status: 500 });
   }
