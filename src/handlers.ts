@@ -401,22 +401,6 @@ async function handleMutationOutcome(
     throw new Error("요청 처리 결과를 확인할 수 없습니다.");
   }
 
-  if (result.kind === "invalid_state") {
-    await clearChatSession(chatId);
-    await sendMessage(chatId, `현재 상태에서는 처리할 수 없습니다. 현재 상태: ${result.row.status}`);
-    await sendHomeKeyboardPrompt(chatId);
-    return;
-  }
-
-  if (result.kind === "already_applied") {
-    await clearChatSession(chatId);
-    await sendMessage(chatId, `이미 같은 내용으로 처리된 요청입니다.\n\n${formatRequest(result.row)}`, {
-      replyMarkup: buildCaregiverActions(result.row.id),
-    });
-    await sendHomeKeyboardPrompt(chatId);
-    return;
-  }
-
   await requesterNotification(result.row);
   await sendMessage(chatId, `${successMessage}\n\n${formatRequest(result.row)}`, {
     replyMarkup: buildCaregiverActions(result.row.id),
@@ -500,7 +484,7 @@ async function handlePendingText(
 
       case "caregiver_reason": {
         const requestId = Number(session.payload.requestId);
-        const status = String(session.payload.status) as "거절" | "취소" | "무응답";
+        const status = String(session.payload.status ?? "");
         const result = await transitionCaregiverReason(requestId, chatId, status, text);
         await handleMutationOutcome(
           chatId,
@@ -521,7 +505,7 @@ async function handlePendingText(
 
       case "execution_note": {
         const requestId = Number(session.payload.requestId);
-        const status = String(session.payload.status) as "완료" | "미이행";
+        const status = String(session.payload.status ?? "");
         const result = await transitionExecutionStatus(requestId, chatId, status, text);
         await handleMutationOutcome(
           chatId,

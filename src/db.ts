@@ -1,14 +1,11 @@
 import { neon } from "@neondatabase/serverless";
 import { config } from "./config";
-import { allowedSourceStatusesForTransition } from "./state";
+import { isRequestStatus } from "./state";
 import type {
-  CaregiverReasonStatus,
   ChatId,
   ChatSessionRow,
   CreateRequestResult,
-  ExecutionStatus,
   MutationResult,
-  RequestStatus,
   SessionMode,
   UpdateAcquireResult,
   VisitationRequestRow,
@@ -215,7 +212,7 @@ export async function transitionApprove(
           decision_by_chat_id = $3,
           decision_at = CURRENT_TIMESTAMP,
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $4 AND status = '요청'
+        WHERE id = $4
         RETURNING ${REQUEST_SELECT_COLUMNS}
       `,
       [approvedPlace, approvedTime, actorChatId, requestId],
@@ -230,19 +227,19 @@ export async function transitionApprove(
   if (!existing) {
     return { kind: "not_found", row: null };
   }
-  if (existing.status === "수락" && existing.approvedPlace === approvedPlace && existing.approvedTime === approvedTime) {
-    return { kind: "already_applied", row: existing };
-  }
-  return { kind: "invalid_state", row: existing };
+  return { kind: "updated", row: existing };
 }
 
 export async function transitionCaregiverReason(
   requestId: number,
   actorChatId: ChatId,
-  status: CaregiverReasonStatus,
+  status: string,
   reason: string,
 ): Promise<MutationResult> {
-  const allowedStatuses = allowedSourceStatusesForTransition(status);
+  if (!isRequestStatus(status)) {
+    throw new Error("허용되지 않는 상태입니다.");
+  }
+
   const updated = asRows<VisitationRequestRow>(
     await sql.query(
       `
@@ -253,10 +250,10 @@ export async function transitionCaregiverReason(
           decision_by_chat_id = $3,
           decision_at = CURRENT_TIMESTAMP,
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $4 AND status = ANY($5::text[])
+        WHERE id = $4
         RETURNING ${REQUEST_SELECT_COLUMNS}
       `,
-      [status, reason, actorChatId, requestId, allowedStatuses],
+      [status, reason, actorChatId, requestId],
     ),
   );
 
@@ -268,19 +265,19 @@ export async function transitionCaregiverReason(
   if (!existing) {
     return { kind: "not_found", row: null };
   }
-  if (existing.status === status && existing.caregiverReason === reason) {
-    return { kind: "already_applied", row: existing };
-  }
-  return { kind: "invalid_state", row: existing };
+  return { kind: "updated", row: existing };
 }
 
 export async function transitionExecutionStatus(
   requestId: number,
   actorChatId: ChatId,
-  status: ExecutionStatus,
+  status: string,
   executionNote: string,
 ): Promise<MutationResult> {
-  const allowedStatuses = allowedSourceStatusesForTransition(status);
+  if (!isRequestStatus(status)) {
+    throw new Error("허용되지 않는 상태입니다.");
+  }
+
   const updated = asRows<VisitationRequestRow>(
     await sql.query(
       `
@@ -291,10 +288,10 @@ export async function transitionExecutionStatus(
           decision_by_chat_id = $3,
           decision_at = CURRENT_TIMESTAMP,
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $4 AND status = ANY($5::text[])
+        WHERE id = $4
         RETURNING ${REQUEST_SELECT_COLUMNS}
       `,
-      [status, executionNote, actorChatId, requestId, allowedStatuses],
+      [status, executionNote, actorChatId, requestId],
     ),
   );
 
@@ -306,10 +303,7 @@ export async function transitionExecutionStatus(
   if (!existing) {
     return { kind: "not_found", row: null };
   }
-  if (existing.status === status && existing.executionNote === executionNote) {
-    return { kind: "already_applied", row: existing };
-  }
-  return { kind: "invalid_state", row: existing };
+  return { kind: "updated", row: existing };
 }
 
 export async function getChatSession(chatId: ChatId): Promise<ChatSessionRow | null> {

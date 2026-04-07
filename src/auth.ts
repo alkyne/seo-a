@@ -1,5 +1,4 @@
 import { config } from "./config";
-import { extractCommand } from "./parser";
 import { CAREGIVER_ALLOWED_COMMANDS, REQUESTER_ALLOWED_COMMANDS, type ChatId } from "./types";
 
 export function isCaregiver(chatId: ChatId): boolean {
@@ -7,7 +6,7 @@ export function isCaregiver(chatId: ChatId): boolean {
 }
 
 export function isAllowedCommandForRole(caregiver: boolean, text: string): boolean {
-  const command = extractCommand(text) ?? "";
+  const command = text.trim().split(/\s+/, 1)[0]?.toLowerCase() ?? "";
   const allowed = caregiver ? CAREGIVER_ALLOWED_COMMANDS : REQUESTER_ALLOWED_COMMANDS;
   return allowed.includes(command as (typeof allowed)[number]);
 }

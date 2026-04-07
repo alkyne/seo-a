@@ -102,7 +102,7 @@ Pure-logic tests:
 npm test
 ```
 
-The tests cover parser behavior, the request formatter, the yearly summary/CSV renderer, and the intended transition rules.
+The tests cover parser behavior, the request formatter, the yearly summary/CSV renderer, and status validation helpers.
 
 ## Vercel Deployment
 
@@ -140,6 +140,6 @@ curl "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo"
 - Request flow state is stored in Postgres via `chat_sessions`, not in memory.
 - Duplicate updates are tracked in `processed_updates`.
 - Request rows are keyed by the Telegram message update that created them to prevent duplicate inserts.
-- State transitions are intentionally stricter than the Python version to make admin actions race-safe and production-safe.
+- Admin status updates now follow `bot.py` parity: repeated or out-of-order caregiver actions can overwrite the current status, matching the original Python bot.
 
 Detailed parity notes are documented in [src/migration-notes.md](/Users/rocketman/Documents/seo-a/src/migration-notes.md).

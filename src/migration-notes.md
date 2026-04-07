@@ -19,9 +19,9 @@
 - SQLite, CSV files, and in-memory `PENDING_INPUTS` replaced with Neon-backed `visitation_requests`, `chat_sessions`, and `processed_updates`.
 - All SQL calls are parameterized via the Neon serverless driver.
 - Callback payloads are parsed and validated before use.
-- Duplicate or conflicting caregiver actions are handled idempotently with conditional updates.
-- State transitions are enforced as `요청 -> 수락|거절|취소|무응답` and `수락 -> 완료|미이행|취소`.
-- Year summary rendering now uses escaped Telegram MarkdownV2 so user-entered text cannot break formatting.
+- Duplicate webhook deliveries are deduplicated via `processed_updates`.
+- Caregiver/admin status updates now match the original Python bot's overwrite behavior instead of enforcing a stricter transition graph.
+- Year summary rendering now matches the original Python bot's legacy Markdown output and unescaped text layout.
 
 ## Non-exact migrations
 

@@ -144,7 +144,7 @@ export type CallbackAction =
 
 export type UpdateAcquireResult = "acquired" | "retried" | "completed" | "processing";
 
-export type MutationResultKind = "updated" | "already_applied" | "not_found" | "forbidden" | "invalid_state";
+export type MutationResultKind = "updated" | "not_found" | "forbidden";
 
 export interface MutationResult {
   kind: MutationResultKind;

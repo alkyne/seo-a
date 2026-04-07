@@ -41,7 +41,7 @@ test("formatRequest preserves the Python text layout", () => {
   );
 });
 
-test("buildYearSummaryMessage returns MarkdownV2 output and escapes user content", () => {
+test("buildYearSummaryMessage preserves the Python Markdown text layout", () => {
   const message = buildYearSummaryMessage("2026", [
     {
       ...sampleRow,
@@ -49,8 +49,28 @@ test("buildYearSummaryMessage returns MarkdownV2 output and escapes user content
     },
   ]);
 
-  assert.equal(message.parseMode, "MarkdownV2");
-  assert.match(message.text, /홍\\_길동/);
+  assert.equal(message.parseMode, "Markdown");
+  assert.equal(
+    message.text,
+    "*2026 면접교섭 연별 리포트*\n" +
+      "- 총 요청: 1\n" +
+      "- 요청: 1\n" +
+      "- 수락: 0\n" +
+      "- 거절: 0\n" +
+      "- 취소: 0\n" +
+      "- 무응답: 0\n" +
+      "- 완료: 0\n" +
+      "- 미이행: 0\n\n" +
+      "*상세 이력*\n" +
+      "- ID 7 | 2026-04-20 14:00 | 요청\n" +
+      "  비양육자: 홍_길동\n" +
+      "  요청장소: 경주역 2번 출구\n" +
+      "  요청메시지: 점심 후 카페 희망\n" +
+      "  확정장소/시간: - / -\n" +
+      "  양육자 사유: -\n" +
+      "  비양육자 사유: -\n" +
+      "  실행메모: -",
+  );
 });
 
 test("buildYearCsv emits the original CSV headers and BOM", () => {

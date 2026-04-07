@@ -1,11 +1,5 @@
 import { REQUEST_STATUSES, type CsvDocument, type InlineKeyboardMarkup, type ReplyKeyboardMarkup, type ReplyKeyboardRemove, type VisitationRequestRow, type YearSummaryMessage } from "./types";
 
-const ESCAPE_MARKDOWN_V2_PATTERN = /[_*[\]()~`>#+\-=|{}.!]/g;
-
-function escapeMarkdownV2(text: string): string {
-  return text.replace(ESCAPE_MARKDOWN_V2_PATTERN, "\\$&");
-}
-
 function csvCell(value: string | number): string {
   const stringValue = String(value);
   if (/[",\r\n]/.test(stringValue)) {
@@ -135,37 +129,33 @@ export function buildYearSummaryMessage(year: string, rows: VisitationRequestRow
   }
 
   const lines = [
-    `*${escapeMarkdownV2(`${year} 면접교섭 연별 리포트`)}*`,
-    `\\- 총 요청: ${rows.length}`,
-    `\\- 요청: ${counts["요청"]}`,
-    `\\- 수락: ${counts["수락"]}`,
-    `\\- 거절: ${counts["거절"]}`,
-    `\\- 취소: ${counts["취소"]}`,
-    `\\- 무응답: ${counts["무응답"]}`,
-    `\\- 완료: ${counts["완료"]}`,
-    `\\- 미이행: ${counts["미이행"]}`,
+    `*${year} 면접교섭 연별 리포트*`,
+    `- 총 요청: ${rows.length}`,
+    `- 요청: ${counts["요청"]}`,
+    `- 수락: ${counts["수락"]}`,
+    `- 거절: ${counts["거절"]}`,
+    `- 취소: ${counts["취소"]}`,
+    `- 무응답: ${counts["무응답"]}`,
+    `- 완료: ${counts["완료"]}`,
+    `- 미이행: ${counts["미이행"]}`,
     "",
     "*상세 이력*",
   ];
 
   for (const row of rows) {
-    lines.push(
-      `\\- ID ${row.id} \\| ${escapeMarkdownV2(row.requestedDate)} ${escapeMarkdownV2(row.requestedTime)} \\| ${escapeMarkdownV2(row.status)}`,
-    );
-    lines.push(`  비양육자: ${escapeMarkdownV2(row.requesterName)}`);
-    lines.push(`  요청장소: ${escapeMarkdownV2(row.requestedPlace)}`);
-    lines.push(`  요청메시지: ${escapeMarkdownV2(row.requestMessage || "-")}`);
-    lines.push(
-      `  확정장소/시간: ${escapeMarkdownV2(row.approvedPlace || "-")} / ${escapeMarkdownV2(row.approvedTime || "-")}`,
-    );
-    lines.push(`  양육자 사유: ${escapeMarkdownV2(row.caregiverReason || "-")}`);
-    lines.push(`  비양육자 사유: ${escapeMarkdownV2(row.requesterReason || "-")}`);
-    lines.push(`  실행메모: ${escapeMarkdownV2(row.executionNote || "-")}`);
+    lines.push(`- ID ${row.id} | ${row.requestedDate} ${row.requestedTime} | ${row.status}`);
+    lines.push(`  비양육자: ${row.requesterName}`);
+    lines.push(`  요청장소: ${row.requestedPlace}`);
+    lines.push(`  요청메시지: ${row.requestMessage || "-"}`);
+    lines.push(`  확정장소/시간: ${(row.approvedPlace || "-")} / ${(row.approvedTime || "-")}`);
+    lines.push(`  양육자 사유: ${row.caregiverReason || "-"}`);
+    lines.push(`  비양육자 사유: ${row.requesterReason || "-"}`);
+    lines.push(`  실행메모: ${row.executionNote || "-"}`);
   }
 
   return {
     text: lines.join("\n"),
-    parseMode: "MarkdownV2",
+    parseMode: "Markdown",
   };
 }
 
