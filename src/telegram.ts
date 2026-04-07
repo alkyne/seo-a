@@ -56,7 +56,9 @@ export async function sendDocument(
 ): Promise<void> {
   const formData = new FormData();
   formData.set("chat_id", chatId);
-  formData.set("document", new Blob([content], { type: "text/csv;charset=utf-8" }), fileName);
+  const blobBytes = new Uint8Array(content.byteLength);
+  blobBytes.set(content);
+  formData.set("document", new Blob([blobBytes.buffer], { type: "text/csv;charset=utf-8" }), fileName);
   if (options.caption) {
     formData.set("caption", options.caption);
   }

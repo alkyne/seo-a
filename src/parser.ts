@@ -90,7 +90,8 @@ function validatePythonTimeLiteral(text: string): void {
     throwPythonFormatError(text, "%H:%M");
   }
   if (minute > 59) {
-    throw new Error(`unconverted data remains: ${match[2].slice(-1)}`);
+    const minuteText = match[2] ?? "";
+    throw new Error(`unconverted data remains: ${minuteText.slice(-1)}`);
   }
 }
 
@@ -113,11 +114,12 @@ function validatePythonYearLiteral(text: string): void {
 
 export function extractCommand(text: string): string | null {
   const token = text.trim().split(/\s+/, 1)[0];
-  if (!token?.startsWith("/")) {
+  if (!token || !token.startsWith("/")) {
     return null;
   }
 
-  return token.split("@", 1)[0].toLowerCase();
+  const normalizedToken = token.split("@", 1)[0] ?? token;
+  return normalizedToken.toLowerCase();
 }
 
 export function splitWithMax(text: string, maxParts: number): string[] {
