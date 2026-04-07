@@ -800,9 +800,15 @@ export async function handleTelegramWebhook(request: Request): Promise<Response>
     return Response.json({ ok: false, error: "invalid-update" }, { status: 400 });
   }
 
+  console.log("Telegram webhook update received", getUpdateDebugContext(update));
+
   const updateId = String(update.update_id);
   const acquireResult = await beginProcessedUpdate(updateId, getUpdateKind(update), getUpdateChatId(update));
   if (acquireResult === "completed" || acquireResult === "processing") {
+    console.log("Telegram webhook duplicate update ignored", {
+      ...getUpdateDebugContext(update),
+      acquireResult,
+    });
     return Response.json({ ok: true, duplicate: true });
   }
 
